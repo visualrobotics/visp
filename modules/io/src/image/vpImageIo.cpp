@@ -64,6 +64,15 @@
 
 #if !defined(VISP_HAVE_OPENCV)
 #if !defined(VISP_HAVE_JPEG) || !defined(VISP_HAVE_PNG)
+
+#if defined __SSE2__ || defined _M_X64 || (defined _M_IX86_FP && _M_IX86_FP >= 2)
+#  define VISP_HAVE_SSE2 1
+#endif
+
+#ifndef VISP_HAVE_SSE2
+#  define STBI_NO_SIMD
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -221,12 +230,13 @@ std::string vpImageIo::getExtension(const std::string &filename)
   only if the new image size is different, else we re-use the same
   memory space.
 
-  Always supported formats are *.pgm and *.ppm.
+  Always supported formats are `*.pgm` and `*.ppm`.
   JPEG and PNG formats are supported through the stb_image public domain image loader.
-  If \c libjpeg 3rd party is used, we support also *.jpg and *.jpeg files.
-  If \c libpng 3rd party is used, we support also *.png files.
-  If OpenCV 3rd party is used, we support *.jpg, *.jpeg, *.jp2, *.rs, *.ras,
-  *.tiff, *.tif, *.png, *.bmp, *.pbm files.
+  - If libjpeg 3rd party is used, we support also `*.jpg` and `*.jpeg` files.
+  - If libpng 3rd party is used, we support also `*.png` files.
+  - If OpenCV 3rd party is used, we support `*.jpg`, `*.jpeg`, `*.jp2`, `*.rs`, `*.ras`,
+  `*.tiff`, `*.tif`, `*.png`, `*.bmp`, `*.pbm` files.
+  - If EXIF information is embedded in the image file, the EXIF orientation is ignored.
 
   \param I : Image to set with the \e filename content.
   \param filename : Name of the file containing the image.
@@ -277,17 +287,16 @@ void vpImageIo::read(vpImage<unsigned char> &I, const std::string &filename)
   }
 
   if (try_opencv_reader) {
-#if VISP_HAVE_OPENCV_VERSION >= 0x030000
-    // std::cout << "Use opencv to read the image" << std::endl;
-    cv::Mat cvI = cv::imread(final_filename, cv::IMREAD_GRAYSCALE);
-    if (cvI.cols == 0 && cvI.rows == 0) {
-      std::string message = "Cannot read file \"" + std::string(final_filename) + "\": Image format not supported";
-      throw(vpImageException(vpImageException::ioError, message));
-    }
-    vpImageConvert::convert(cvI, I);
+#if defined(VISP_HAVE_OPENCV) && VISP_HAVE_OPENCV_VERSION >= 0x020100
+#if VISP_HAVE_OPENCV_VERSION >= 0x030200
+    int flags = cv::IMREAD_GRAYSCALE | cv::IMREAD_IGNORE_ORIENTATION;
+#elif VISP_HAVE_OPENCV_VERSION >= 0x030000
+    int flags = cv::IMREAD_GRAYSCALE;
 #elif VISP_HAVE_OPENCV_VERSION >= 0x020100
+    int flags = CV_LOAD_IMAGE_GRAYSCALE;
+#endif
     // std::cout << "Use opencv to read the image" << std::endl;
-    cv::Mat cvI = cv::imread(final_filename, CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat cvI = cv::imread(final_filename, flags);
     if (cvI.cols == 0 && cvI.rows == 0) {
       std::string message = "Cannot read file \"" + std::string(final_filename) + "\": Image format not supported";
       throw(vpImageException(vpImageException::ioError, message));
@@ -325,12 +334,13 @@ void vpImageIo::read(vpImage<unsigned char> &I, const std::string &filename)
   only if the new image size is different, else we re-use the same
   memory space.
 
-  Always supported formats are *.pgm and *.ppm.
+  Always supported formats are `*.pgm` and `*.ppm`.
   JPEG and PNG formats are supported through the stb_image public domain image loader.
-  If \c libjpeg 3rd party is used, we support also *.jpg and *.jpeg files.
-  If \c libpng 3rd party is used, we support also *.png files.
-  If OpenCV 3rd party is used, we support *.jpg, *.jpeg, *.jp2, *.rs, *.ras,
-  *.tiff, *.tif, *.png, *.bmp, *.pbm files.
+  - If libjpeg 3rd party is used, we support also `*.jpg` and `*.jpeg` files.
+  - If libpng 3rd party is used, we support also `*.png` files.
+  - If OpenCV 3rd party is used, we support `*.jpg`, `*.jpeg`, `*.jp2`, `*.rs`, `*.ras`,
+  `*.tiff`, `*.tif`, `*.png`, `*.bmp`, `*.pbm` files.
+  - If EXIF information is embedded in the image file, the EXIF orientation is ignored.
 
   \param I : Image to set with the \e filename content.
   \param filename : Name of the file containing the image.
@@ -362,6 +372,8 @@ void vpImageIo::read(vpImage<vpRGBa> &I, const std::string &filename)
 #endif
     break;
   case FORMAT_PNG:
+    std::cout << "appelle readPNG()" << std::endl;
+
 #if defined(VISP_HAVE_PNG)
     readPNG(I, final_filename);
 #else
@@ -380,17 +392,16 @@ void vpImageIo::read(vpImage<vpRGBa> &I, const std::string &filename)
   }
 
   if (try_opencv_reader) {
-#if VISP_HAVE_OPENCV_VERSION >= 0x030000
-    // std::cout << "Use opencv to read the image" << std::endl;
-    cv::Mat cvI = cv::imread(final_filename, cv::IMREAD_COLOR);
-    if (cvI.cols == 0 && cvI.rows == 0) {
-      std::string message = "Cannot read file \"" + std::string(final_filename) + "\": Image format not supported";
-      throw(vpImageException(vpImageException::ioError, message));
-    }
-    vpImageConvert::convert(cvI, I);
+#if defined(VISP_HAVE_OPENCV) && VISP_HAVE_OPENCV_VERSION >= 0x020100
+#if VISP_HAVE_OPENCV_VERSION >= 0x030200
+    int flags = cv::IMREAD_COLOR | cv::IMREAD_IGNORE_ORIENTATION;
+#elif VISP_HAVE_OPENCV_VERSION >= 0x030000
+    int flags = cv::IMREAD_COLOR;
 #elif VISP_HAVE_OPENCV_VERSION >= 0x020100
+    int flags = CV_LOAD_IMAGE_COLOR;
+#endif
     // std::cout << "Use opencv to read the image" << std::endl;
-    cv::Mat cvI = cv::imread(final_filename, CV_LOAD_IMAGE_COLOR);
+    cv::Mat cvI = cv::imread(final_filename, flags);
     if (cvI.cols == 0 && cvI.rows == 0) {
       std::string message = "Cannot read file \"" + std::string(final_filename) + "\": Image format not supported";
       throw(vpImageException(vpImageException::ioError, message));
@@ -1376,20 +1387,23 @@ void vpImageIo::writeJPEG(const vpImage<vpRGBa> &I, const std::string &filename)
   only if the new image size is different, else we re-use the same
   memory space.
 
+  If EXIF information is embedded in the image file, the EXIF orientation is ignored.
+
   \param I : Image to set with the \e filename content.
   \param filename : Name of the file containing the image.
 
 */
 void vpImageIo::readJPEG(vpImage<unsigned char> &I, const std::string &filename)
 {
-#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
-  cv::Mat Ip = cv::imread(filename.c_str(), cv::IMREAD_GRAYSCALE);
-  if (!Ip.empty())
-    vpImageConvert::convert(Ip, I);
-  else
-    throw(vpImageException(vpImageException::ioError, "Can't read the image"));
-#elif (VISP_HAVE_OPENCV_VERSION >= 0x020408)
-  cv::Mat Ip = cv::imread(filename.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+#if defined(VISP_HAVE_OPENCV) && VISP_HAVE_OPENCV_VERSION >= 0x020100
+#if VISP_HAVE_OPENCV_VERSION >= 0x030200
+    int flags = cv::IMREAD_GRAYSCALE | cv::IMREAD_IGNORE_ORIENTATION;
+#elif VISP_HAVE_OPENCV_VERSION >= 0x030000
+    int flags = cv::IMREAD_GRAYSCALE;
+#elif VISP_HAVE_OPENCV_VERSION >= 0x020100
+    int flags = CV_LOAD_IMAGE_GRAYSCALE;
+#endif
+  cv::Mat Ip = cv::imread(filename.c_str(), flags);
   if (!Ip.empty())
     vpImageConvert::convert(Ip, I);
   else
@@ -1420,19 +1434,22 @@ void vpImageIo::readJPEG(vpImage<unsigned char> &I, const std::string &filename)
   If the file corresponds to a grayscaled image, a conversion is done to deal
   with \e I which is a color image.
 
+  If EXIF information is embedded in the image file, the EXIF orientation is ignored.
+
   \param I : Color image to set with the \e filename content.
   \param filename : Name of the file containing the image.
 */
 void vpImageIo::readJPEG(vpImage<vpRGBa> &I, const std::string &filename)
 {
-#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
-  cv::Mat Ip = cv::imread(filename.c_str(), cv::IMREAD_GRAYSCALE);
-  if (!Ip.empty())
-    vpImageConvert::convert(Ip, I);
-  else
-    throw(vpImageException(vpImageException::ioError, "Can't read the image"));
-#elif (VISP_HAVE_OPENCV_VERSION >= 0x020408)
-  cv::Mat Ip = cv::imread(filename.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+#if defined(VISP_HAVE_OPENCV) && VISP_HAVE_OPENCV_VERSION >= 0x020100
+#if VISP_HAVE_OPENCV_VERSION >= 0x030200
+    int flags = cv::IMREAD_GRAYSCALE | cv::IMREAD_IGNORE_ORIENTATION;
+#elif VISP_HAVE_OPENCV_VERSION >= 0x030000
+    int flags = cv::IMREAD_GRAYSCALE;
+#elif VISP_HAVE_OPENCV_VERSION >= 0x020100
+    int flags = CV_LOAD_IMAGE_GRAYSCALE;
+#endif
+  cv::Mat Ip = cv::imread(filename.c_str(), flags);
   if (!Ip.empty())
     vpImageConvert::convert(Ip, I);
   else
@@ -2104,20 +2121,23 @@ void vpImageIo::writePNG(const vpImage<vpRGBa> &I, const std::string &filename)
   only if the new image size is different, else we re-use the same
   memory space.
 
+  If EXIF information is embedded in the image file, the EXIF orientation is ignored.
+
   \param I : Image to set with the \e filename content.
   \param filename : Name of the file containing the image.
 
 */
 void vpImageIo::readPNG(vpImage<unsigned char> &I, const std::string &filename)
 {
-#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
-  cv::Mat Ip = cv::imread(filename.c_str(), cv::IMREAD_GRAYSCALE);
-  if (!Ip.empty())
-    vpImageConvert::convert(Ip, I);
-  else
-    throw(vpImageException(vpImageException::ioError, "Can't read the image"));
-#elif (VISP_HAVE_OPENCV_VERSION >= 0x020408)
-  cv::Mat Ip = cv::imread(filename.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+#if defined(VISP_HAVE_OPENCV) && VISP_HAVE_OPENCV_VERSION >= 0x020100
+#if VISP_HAVE_OPENCV_VERSION >= 0x030200
+    int flags = cv::IMREAD_GRAYSCALE | cv::IMREAD_IGNORE_ORIENTATION;
+#elif VISP_HAVE_OPENCV_VERSION >= 0x030000
+    int flags = cv::IMREAD_GRAYSCALE;
+#elif VISP_HAVE_OPENCV_VERSION >= 0x020100
+    int flags = CV_LOAD_IMAGE_GRAYSCALE;
+#endif
+  cv::Mat Ip = cv::imread(filename.c_str(), flags);
   if (!Ip.empty())
     vpImageConvert::convert(Ip, I);
   else
@@ -2148,19 +2168,22 @@ void vpImageIo::readPNG(vpImage<unsigned char> &I, const std::string &filename)
   If the file corresponds to a grayscaled image, a conversion is done to deal
   with \e I which is a color image.
 
+  If EXIF information is embedded in the image file, the EXIF orientation is ignored.
+
   \param I : Color image to set with the \e filename content.
   \param filename : Name of the file containing the image.
 */
 void vpImageIo::readPNG(vpImage<vpRGBa> &I, const std::string &filename)
 {
-#if (VISP_HAVE_OPENCV_VERSION >= 0x030000)
-  cv::Mat Ip = cv::imread(filename.c_str(), cv::IMREAD_GRAYSCALE);
-  if (!Ip.empty())
-    vpImageConvert::convert(Ip, I);
-  else
-    throw(vpImageException(vpImageException::ioError, "Can't read the image"));
-#elif (VISP_HAVE_OPENCV_VERSION >= 0x020408)
-  cv::Mat Ip = cv::imread(filename.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+#if defined(VISP_HAVE_OPENCV) && VISP_HAVE_OPENCV_VERSION >= 0x020100
+#if VISP_HAVE_OPENCV_VERSION >= 0x030200
+    int flags = cv::IMREAD_COLOR | cv::IMREAD_IGNORE_ORIENTATION;
+#elif VISP_HAVE_OPENCV_VERSION >= 0x030000
+    int flags = cv::IMREAD_COLOR;
+#elif VISP_HAVE_OPENCV_VERSION >= 0x020100
+    int flags = CV_LOAD_IMAGE_COLOR;
+#endif
+  cv::Mat Ip = cv::imread(filename.c_str(), flags);
   if (!Ip.empty())
     vpImageConvert::convert(Ip, I);
   else

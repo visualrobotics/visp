@@ -206,7 +206,7 @@ class StorageWorker
 {
 
 public:
-  StorageWorker(FrameQueue &queue, const std::string &filename, const unsigned int width, const unsigned int height)
+  StorageWorker(FrameQueue &queue, const std::string &filename, unsigned int width, unsigned int height)
     : m_queue(queue), m_filename(filename), m_width(width), m_height(height)
   {
   }
@@ -341,8 +341,8 @@ void capture(vpV4l2Grabber *const pGrabber, ShareImage &share_image)
   }
 }
 
-void display(const unsigned int width, const unsigned int height, const int win_x, const int win_y,
-             const unsigned int deviceId, ShareImage &share_image, FrameQueue &queue, const bool save)
+void display(unsigned int width, unsigned int height, int win_x, int win_y,
+             unsigned int deviceId, ShareImage &share_image, FrameQueue &queue, bool save)
 {
   vpImage<vpRGBa> local_img(height, width);
 
@@ -353,15 +353,16 @@ void display(const unsigned int width, const unsigned int height, const int win_
 #endif
 
   // Init Display
-  std::stringstream ss;
-  ss << "Camera stream " << deviceId;
-  display.init(local_img, win_x, win_y, ss.str());
+  {
+    std::stringstream ss;
+    ss << "Camera stream " << deviceId;
+    display.init(local_img, win_x, win_y, ss.str());
+  }
 
   try {
     vpMouseButton::vpMouseButtonType button;
 
     vpImage<unsigned char> I_red(height, width), I_green(height, width), I_blue(height, width), I_alpha(height, width);
-    ;
     vpImage<unsigned char> I_red_gaussian(height, width), I_green_gaussian(height, width),
         I_blue_gaussian(height, width);
     vpImage<double> I_red_gaussian_double, I_green_gaussian_double, I_blue_gaussian_double;

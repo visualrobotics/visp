@@ -166,7 +166,7 @@ void vpGenericFeature::setError(const vpColVector &error_vector)
   s.error(s_star, vpBasicFeature::FEATURE_LINE[0] | vpBasicFeature::FEATURE_LINE[1]);
   \endcode
 */
-vpColVector vpGenericFeature::error(const vpBasicFeature &s_star, const unsigned int select)
+vpColVector vpGenericFeature::error(const vpBasicFeature &s_star, unsigned int select)
 {
   if (s_star.get_s().getRows() != dim_s) {
     vpERROR_TRACE("size mismatch between s* dimension "
@@ -251,7 +251,7 @@ vpColVector vpGenericFeature::error(const vpBasicFeature &s_star, const unsigned
   s.error(vpBasicFeature::FEATURE_LINE[0] | vpBasicFeature::FEATURE_LINE[1]);
   \endcode
 */
-vpColVector vpGenericFeature::error(const unsigned int select)
+vpColVector vpGenericFeature::error(unsigned int select)
 {
   vpColVector e(0);
 
@@ -338,7 +338,7 @@ vpColVector vpGenericFeature::error(const unsigned int select)
   vpMatrix L_x = s.interaction( vpBasicFeature::FEATURE_LINE[0]|vpBasicFeature::FEATURE_LINE[1] );
   \endcode
 */
-vpMatrix vpGenericFeature::interaction(const unsigned int select)
+vpMatrix vpGenericFeature::interaction(unsigned int select)
 {
   if (L.getRows() == 0) {
     std::cout << "interaction matrix " << L << std::endl;
@@ -382,7 +382,6 @@ void vpGenericFeature::setInteractionMatrix(const vpMatrix &L_)
 {
   if (L_.getRows() != dim_s) {
     std::cout << L_.getRows() << "  " << dim_s << std::endl;
-    ;
     vpERROR_TRACE("size mismatch between interaction matrix size "
                   "and feature dimension");
     throw(vpFeatureException(vpFeatureException::sizeMismatchError, "size mismatch between interaction matrix size "
@@ -449,7 +448,7 @@ void vpGenericFeature::get_s(vpColVector &s_vector) const
   is different from the dimension of the visual feature as specified
   in the constructor
 */
-void vpGenericFeature::set_s(const double s0, const double s1, const double s2)
+void vpGenericFeature::set_s(double s0, double s1, double s2)
 {
 
   if (3 != dim_s) {
@@ -502,7 +501,7 @@ void vpGenericFeature::get_s(double &s0, double &s1, double &s2) const
   is different from the dimension of the visual feature as specified
   in the constructor
 */
-void vpGenericFeature::set_s(const double s0, const double s1)
+void vpGenericFeature::set_s(double s0, double s1)
 {
 
   if (2 != dim_s) {
@@ -548,7 +547,7 @@ void vpGenericFeature::get_s(double &s0, double &s1) const
   is different from the dimension of the visual feature as specified
   in the constructor
 */
-void vpGenericFeature::set_s(const double s0)
+void vpGenericFeature::set_s(double s0)
 {
 
   if (1 != dim_s) {
@@ -602,7 +601,7 @@ void vpGenericFeature::get_s(double &s0) const
   s.print(vpBasicFeature::FEATURE_LINE[0]); // print only the first component
   \endcode
 */
-void vpGenericFeature::print(const unsigned int select) const
+void vpGenericFeature::print(unsigned int select) const
 {
 
   std::cout << "Generic Feature: ";

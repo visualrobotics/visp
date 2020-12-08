@@ -44,8 +44,6 @@
 
 #include <visp3/core/vpConfig.h>
 
-#ifdef VISP_HAVE_PUGIXML
-
 #include <visp3/core/vpCameraParameters.h>
 #include <visp3/mbt/vpMbtFaceDepthNormal.h>
 #include <visp3/me/vpMe.h>
@@ -126,15 +124,15 @@ public:
 
   void setCameraParameters(const vpCameraParameters &cam);
 
-  void setDepthDenseSamplingStepX(const unsigned int stepX);
-  void setDepthDenseSamplingStepY(const unsigned int stepY);
+  void setDepthDenseSamplingStepX(unsigned int stepX);
+  void setDepthDenseSamplingStepY(unsigned int stepY);
 
   void setDepthNormalFeatureEstimationMethod(const vpMbtFaceDepthNormal::vpFeatureEstimationType &method);
-  void setDepthNormalPclPlaneEstimationMethod(const int method);
-  void setDepthNormalPclPlaneEstimationRansacMaxIter(const int maxIter);
-  void setDepthNormalPclPlaneEstimationRansacThreshold(const double threshold);
-  void setDepthNormalSamplingStepX(const unsigned int stepX);
-  void setDepthNormalSamplingStepY(const unsigned int stepY);
+  void setDepthNormalPclPlaneEstimationMethod(int method);
+  void setDepthNormalPclPlaneEstimationRansacMaxIter(int maxIter);
+  void setDepthNormalPclPlaneEstimationRansacThreshold(double threshold);
+  void setDepthNormalSamplingStepX(unsigned int stepX);
+  void setDepthNormalSamplingStepY(unsigned int stepY);
 
   void setEdgeMe(const vpMe &ecm);
 
@@ -162,7 +160,5 @@ private:
   class Impl;
   Impl *m_impl;
 };
-
-#endif
 
 #endif
